@@ -1,0 +1,3 @@
+ALTER TABLE tournament DROP COLUMN IF EXISTS rounds;
+ALTER TABLE tournament DROP COLUMN IF EXISTS round;
+DROP TABLE IF EXISTS bracket_matches;

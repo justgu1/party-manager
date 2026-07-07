@@ -1,0 +1,79 @@
+# Docker Swarm stack for party-manager (help-party), following the infra-swarm
+# pattern. Images are built locally on the node (see deploy/README.md).
+# Deploy: set -a; . /opt/infra-swarm/.env; set +a; \
+#         docker stack deploy -c stacks/party.yml party
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: helpparty
+      POSTGRES_PASSWORD: ${PARTY_DB_PASSWORD}
+      POSTGRES_DB: helpparty
+    volumes:
+      - party_db:/var/lib/postgresql/data
+    networks:
+      - internal
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  api:
+    image: party-manager-api:latest
+    environment:
+      DATABASE_URL: postgres://helpparty:${PARTY_DB_PASSWORD}@party_db:5432/helpparty?sslmode=disable
+      HTTP_ADDR: ":8080"
+      JWT_SECRET: ${PARTY_JWT_SECRET}
+      APP_BASE_URL: https://party.justgui.dev
+      ADMIN_EMAILS: ${PARTY_ADMIN_EMAILS}
+      YOUTUBE_API_KEY: ${PARTY_YOUTUBE_API_KEY}
+      UPLOADS_DIR: /data/uploads
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_JUSTGUI_USER}
+      SMTP_PASS: ${SMTP_JUSTGUI_PASSWORD}
+      SMTP_FROM: help-party <support@justgui.dev>
+    volumes:
+      - party_uploads:/data/uploads
+    networks:
+      - proxy
+      - internal
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  worker:
+    image: party-manager-worker:latest
+    environment:
+      DATABASE_URL: postgres://helpparty:${PARTY_DB_PASSWORD}@party_db:5432/helpparty?sslmode=disable
+    networks:
+      - internal
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+volumes:
+  party_db:
+  party_uploads:
+
+networks:
+  proxy:
+    external: true
+  internal:
+    external: true

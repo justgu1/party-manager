@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS songs;
+DROP TABLE IF EXISTS prendas;
+DROP TABLE IF EXISTS rental_votes;
+DROP TABLE IF EXISTS rental_availability;
+DROP TABLE IF EXISTS rentals;
+DROP TABLE IF EXISTS users;

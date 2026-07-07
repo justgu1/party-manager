@@ -1,0 +1,5 @@
+ALTER TABLE rentals DROP COLUMN IF EXISTS notes;
+DROP TABLE IF EXISTS tournament;
+DROP TABLE IF EXISTS password_resets;
+ALTER TABLE rental_votes DROP COLUMN IF EXISTS value;
+ALTER TABLE users DROP COLUMN IF EXISTS is_admin;

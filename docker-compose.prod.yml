@@ -1,0 +1,33 @@
+# Production overlay: TLS via Caddy (auto Let's Encrypt) for party.justgui.dev.
+# Usage on the VPS:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+services:
+  api:
+    # Reached only through Caddy on the internal network.
+    restart: unless-stopped
+    ports: !reset []
+    environment:
+      APP_BASE_URL: https://party.justgui.dev
+
+  worker:
+    restart: unless-stopped
+
+  db:
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  caddy_data:
+  caddy_config:
