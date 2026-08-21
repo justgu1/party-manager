@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: party-manager-worker
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: party-manager-worker
+  template:
+    metadata:
+      labels:
+        app: party-manager-worker
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/justgu1/party-manager-worker:latest
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 1Gi
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: party-manager-secrets
+                  key: DATABASE_URL
