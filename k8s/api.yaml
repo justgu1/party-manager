@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: party-manager-api
+  namespace: apps
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # PVC uploads é RWO, sem rolling update
+  selector:
+    matchLabels:
+      app: party-manager-api
+  template:
+    metadata:
+      labels:
+        app: party-manager-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/justgu1/party-manager-api:latest
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: HTTP_ADDR
+              value: ":8080"
+            - name: APP_BASE_URL
+              value: "https://party.justgui.dev"
+            - name: UPLOADS_DIR
+              value: /data/uploads
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: party-manager-secrets
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: party-manager-secrets
+                  key: JWT_SECRET
+            - name: YOUTUBE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: party-manager-secrets
+                  key: YOUTUBE_API_KEY
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: party-manager-secrets
+                  key: SMTP_HOST
+            - name: SMTP_FROM
+              valueFrom:
+                secretKeyRef:
+                  name: party-manager-secrets
+                  key: SMTP_FROM
+          volumeMounts:
+            - name: uploads
+              mountPath: /data/uploads
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: party-manager-uploads
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: party-manager-api
+  namespace: apps
+spec:
+  selector:
+    app: party-manager-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
