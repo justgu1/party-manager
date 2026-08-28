@@ -48,6 +48,21 @@ spec:
                 secretKeyRef:
                   name: party-manager-secrets
                   key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: party-manager-secrets
+                  key: SMTP_PORT
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: party-manager-secrets
+                  key: SMTP_USER
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: party-manager-secrets
+                  key: SMTP_PASS
             - name: SMTP_FROM
               valueFrom:
                 secretKeyRef:
